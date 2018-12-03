@@ -1,5 +1,3 @@
-#FROM frekele/java:jdk8u181
-#FROM alpine:3.7
 FROM ubuntu:18.04
 
 RUN apt-get update && apt-get install --fix-missing -y \
@@ -23,14 +21,13 @@ WORKDIR /home/looker
 
 # Install phantomjs in /opt, symlink it in /usr/local/bin where helltool expects it
 ADD phantomjs-2.1.1-linux-x86_64.tar.bz2 /opt
-RUN mkdir -p /usr/local/bin && ln -s /opt/phantomjs-2.1.1-linux-x86_64/bin/phantomjs /usr/local/bin/phantomjs 
+RUN mkdir -p /usr/local/bin && ln -s /opt/phantomjs-2.1.1-linux-x86_64/bin/phantomjs /usr/local/bin/phantomjs
 RUN ["/bin/bash", "-c", "echo export PATH=/usr/local/bin:\\$PATH >> .bashrc"]
-
 
 # Install java ,rvm, jruby and get them in to the default path
 RUN ["/bin/bash", "-c", "curl https://storage.googleapis.com/micahc-backup/jdk-8u191-linux-x64.tar.bz2 \
 |(mkdir -p /opt; cd /opt; tar jxf -)"]
-RUN ["/bin/bash", "-c", "echo export PATH=/opt/jdk1.8.0_191/bin:\\$PATH >> .bashrc"]
+RUN mkdir -p /usr/local/bin && ln -s /opt/jdk1.8.0_191/bin/java /usr/local/bin/java
 
 # Make python2.7 be 'python' in the global path
 RUN ["/bin/bash", "-c", "update-alternatives --install /usr/bin/python python /usr/bin/python2.7 1"]
@@ -38,7 +35,11 @@ RUN ["/bin/bash", "-c", "update-alternatives --install /usr/bin/python python /u
 # Set default locale
 RUN update-locale LANG=C.UTF-8
 
-USER looker 
+USER looker
+
+COPY --chown=looker tmp/.ssh .ssh
+COPY --chown=looker tmp/.gradle/gradle.properties .gradle/gradle.properties
+
 # Install rvm, jruby, nvm and get them in to the default path
 RUN curl -sSL https://rvm.io/mpapis.asc | gpg --import --no-tty
 RUN ["/bin/bash", "-c", "set -o pipefail && curl -L https://get.rvm.io | bash -s stable --autolibs=3"]
@@ -48,8 +49,7 @@ RUN ["/bin/bash", "-c", "source /home/looker/.rvm/scripts/rvm && \
   rvm install jruby-9.1.17.0 && \
   rvm use jruby-9.1.17.0 --default && \
   rvm gemset create looker && \
-  rvm gemset use looker && \
-  gem install bundler" ]
+  rvm gemset use looker "]
 
 RUN ["/bin/bash", "-c", "set -o pipefail && \
   curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.29.0/install.sh | bash && \
@@ -59,8 +59,11 @@ RUN ["/bin/bash", "-c", "source /home/looker/.nvm/nvm.sh && \
     nvm use 8.12.0 && \
     nvm alias default 8.12.0"]
 
+RUN ["/bin/bash", "-c", "mkdir -p src/; cd src; git clone --progress --depth 1 git@github.com:looker/helltool.git"]
+ENV JAVA_HOME /opt/jdk1.8.0_191
+RUN ["/bin/bash", "-c", "source /home/looker/.rvm/scripts/rvm && source /home/looker/.nvm/nvm.sh && cd src/helltool && gem install bundler && nvm install && bin/prepare"]
+
 EXPOSE 9999
 EXPOSE 19999
-
 
 ENTRYPOINT /bin/bash

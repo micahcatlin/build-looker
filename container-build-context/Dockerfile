@@ -1,6 +1,6 @@
 FROM ubuntu:18.04
 
-RUN apt-get update && apt-get install --fix-missing -y \
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install --fix-missing -y \
   build-essential \
   bzip2 \
   chromium-browser \
@@ -13,6 +13,7 @@ RUN apt-get update && apt-get install --fix-missing -y \
   python2.7 \
   ruby \
   sudo \
+  tzdata \
   vim \
   wget
 
@@ -49,7 +50,8 @@ RUN ["/bin/bash", "-c", "source /home/looker/.rvm/scripts/rvm && \
   rvm install jruby-9.1.17.0 && \
   rvm use jruby-9.1.17.0 --default && \
   rvm gemset create looker && \
-  rvm gemset use looker "]
+  rvm gemset use looker && \
+  gem install bundler"]
 
 RUN ["/bin/bash", "-c", "set -o pipefail && \
   curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.29.0/install.sh | bash && \
@@ -59,11 +61,17 @@ RUN ["/bin/bash", "-c", "source /home/looker/.nvm/nvm.sh && \
     nvm use 8.12.0 && \
     nvm alias default 8.12.0"]
 
-RUN ["/bin/bash", "-c", "mkdir -p src/; cd src; git clone --progress --depth 1 git@github.com:looker/helltool.git"]
+#TODO: Sort out a way to get the helltool.git checkout into the container as a volume that can
+# be more flexibly composed.  For now, just rely on the user bind-mounting a checkout.
+#RUN ["/bin/bash", "-c", "mkdir -p src/; cd src; git clone --progress --depth 1 git@github.com:looker/helltool.git"]
+
 ENV JAVA_HOME /opt/jdk1.8.0_191
-RUN ["/bin/bash", "-c", "source /home/looker/.rvm/scripts/rvm && source /home/looker/.nvm/nvm.sh && cd src/helltool && gem install bundler && nvm install && bin/prepare"]
+ENV LANG C.UTF-8
+ENV LC_ALL C.UTF-8
 
 EXPOSE 9999
 EXPOSE 19999
+
+USER looker
 
 ENTRYPOINT /bin/bash

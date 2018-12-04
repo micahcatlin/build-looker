@@ -3,4 +3,5 @@ docker run \
   -v $HOME/.ssh:/home/looker/.ssh \
   -v $HOME/.gradle:/home/looker/.gradle \
   -v $HOME/src:/home/looker/src \
-  -it looker-build
+  -it looker-build \
+  start

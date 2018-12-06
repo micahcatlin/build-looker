@@ -1,25 +1,23 @@
-#Scripts to configure a Dockerized build environment with:
- java, jruby(rvm), node(nvm), chromium, phantomjs, etc
+#Scripts to configure a Chromeos 'stretch' penguin container for Looker development with the necessary toolchain.
+java, jruby(rvm), node(nvm), chromium, phantomjs, etc
 
 ### Pre-setup
-If you're running in the 'penguin' Terminal container on ChromeOS, run this
-script to get a working "docker" binary
-
-```
-  $ cd docker-chromeos/
-  $ sh docker-chromeos.sh
-```
-
 Expected files:
   $HOME/.ssh/ contains keys for pulling from github
-  $HOME/.gradle/gradle.properties is configure for pulling from Nexus
+  $HOME/.gradle/gradle.properties is configured for pulling from Nexus
   $HOME/src/helltool is a checkout of helltool.git
 
 ### Setup
-$ sh build.sh  # Build a container in the local docker environment
-$ sh run.sh    # Launch a shell in that container, ready for "bundle install && bin/helltool start"
+$ ./install.sh         # Make tea, this takes a while.
+$ cd ~/src/helltool
+$ bin/prepare
+$ bin/helltool start
 
-### TODO
-Networking is not quite right -- If you run a helltool server in the Terminal container,
-it will be reachable on https://172.17.0.2:9999 from within the container, but not from
-the host OS.  This can surely be improved.
+Docker is not necessary to build/run helltool, but it is needed to run integration tests.
+This script installs the necessary binaries, but does not activate the dockerd service.
+If you need to run integration tests, use another Terminal to run '$ sudo dockerd'
+
+### 
+The ChromeOS container has a special DNS alias in the .test TLD, penguin.linux.test.
+
+https://penguin.linux.test:9999 should work in the OS browser.

@@ -14,7 +14,7 @@ sudo add-apt-repository \
    stable"
 
 sudo apt-get update
-sudo apt-get install docker-ce
+sudo apt-get install -y docker-ce
 sudo cp runc-chromeos /usr/local/bin
 sudo cp daemon.json /etc/docker
 sudo service docker restart

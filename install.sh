@@ -17,10 +17,6 @@ sudo apt-get update && DEBIAN_FRONTEND=noninteractive sudo apt-get install --fix
   vim \
   wget
 
-pushd docker-chromeos
-./docker-chromeos.sh
-popd
-
 # Install phantomjs in /opt, symlink it in /usr/local/bin where helltool expects it
 if [ ! -e /usr/local/bin/phantomjs ]; then
   curl https://storage.googleapis.com/micahc-backup/phantomjs-2.1.1-linux-x86_64.tar.bz2 \
